@@ -14,7 +14,7 @@ mercado-livre/!**/src/test/**/target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-mercado-livre/.idea
+mercado-livre/.idea/**
 mercado-livre/*.iws
 mercado-livre/*.iml
 mercado-livre/*.ipr
