@@ -1,0 +1,33 @@
+HELP.md
+target/
+casa-do-codigo/!.mvn/wrapper/maven-wrapper.jar
+casa-do-codigo/!**/src/main/**/target/
+casa-do-codigo/!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+casa-do-codigo/.idea
+casa-do-codigo/*.iws
+casa-do-codigo/*.iml
+casa-do-codigo/*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
