@@ -4,10 +4,13 @@
     <inspection_tool class="FieldCanBeLocal" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="EXCLUDE_ANNOS">
         <value>
-          <list size="3">
+          <list size="6">
             <item index="0" class="java.lang.String" itemvalue="javax.persistence.Column" />
             <item index="1" class="java.lang.String" itemvalue="javax.persistence.ManyToOne" />
-            <item index="2" class="java.lang.String" itemvalue="javax.validation.constraints.NotBlank" />
+            <item index="2" class="java.lang.String" itemvalue="javax.persistence.OneToMany" />
+            <item index="3" class="java.lang.String" itemvalue="javax.validation.constraints.DecimalMin" />
+            <item index="4" class="java.lang.String" itemvalue="javax.validation.constraints.Min" />
+            <item index="5" class="java.lang.String" itemvalue="javax.validation.constraints.NotBlank" />
           </list>
         </value>
       </option>
