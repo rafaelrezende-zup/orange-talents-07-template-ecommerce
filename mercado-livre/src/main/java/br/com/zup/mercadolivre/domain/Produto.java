@@ -1,12 +1,14 @@
 package br.com.zup.mercadolivre.domain;
 
-import br.com.zup.mercadolivre.domain.dto.NovoProdutoDTO;
+import br.com.zup.mercadolivre.domain.dto.NovaCaracteristicaDTO;
+import org.springframework.util.Assert;
 
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,7 +28,7 @@ public class Produto {
     private BigDecimal valor;
 
     @NotNull
-    @Min(0)
+    @Positive
     private Integer quantidade;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "produto", cascade = CascadeType.PERSIST)
@@ -40,24 +42,59 @@ public class Produto {
     @ManyToOne
     private Categoria categoria;
 
-    private LocalDateTime dataResgistro;
+    private LocalDateTime dataResgistro = LocalDateTime.now();
 
     @ManyToOne
     private Usuario usuario;
 
-    public Produto(NovoProdutoDTO dto, Categoria categoria, Usuario usuario) {
-        this.nome = dto.getNome();
-        this.valor = dto.getValor();
-        this.quantidade = dto.getQuantidade();
-        this.descricao = dto.getDescricao();
-        this.caracteristicas = dto.getCaracteristicas().stream().map(c -> c.toModel(this)).collect(Collectors.toSet());
+    public Produto(@NotBlank String nome, @Positive int quantidade,
+                   @NotBlank @Size(max = 1000) String descricao,
+                   @NotNull @Positive BigDecimal valor,
+                   @NotNull @Valid Categoria categoria, @NotNull @Valid Usuario usuario,
+                   @Size(min = 3) @Valid Collection<NovaCaracteristicaDTO> caracteristicas) {
+
+        this.nome = nome;
+        this.quantidade = quantidade;
+        this.descricao = descricao;
+        this.valor = valor;
         this.categoria = categoria;
         this.dataResgistro = LocalDateTime.now();
         this.usuario = usuario;
+        this.caracteristicas.addAll(caracteristicas
+                .stream().map(caracteristica -> caracteristica.toModel(this))
+                .collect(Collectors.toSet()));
+
+        Assert.isTrue(this.caracteristicas.size() >= 3,"Todo produto precisa ter no mínimo 3 ou mais características");
+
     }
 
     @Deprecated
     public Produto() {
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((nome == null) ? 0 : nome.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Produto other = (Produto) obj;
+        if (nome == null) {
+            if (other.nome != null)
+                return false;
+        } else if (!nome.equals(other.nome))
+            return false;
+        return true;
     }
 
 }

@@ -1,11 +1,15 @@
 package br.com.zup.mercadolivre.domain.dto;
 
 import br.com.zup.mercadolivre.domain.Categoria;
+import br.com.zup.mercadolivre.domain.Produto;
+import br.com.zup.mercadolivre.domain.Usuario;
 import br.com.zup.mercadolivre.validator.Exist;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -23,7 +27,7 @@ public class NovoProdutoDTO {
     private Integer quantidade;
 
     @Size(min = 3, message = "O produto deve ter no mínimo 3 características")
-    private Set<@Valid NovaCaracteristicaDTO> caracteristicas;
+    private List<@Valid NovaCaracteristicaDTO> caracteristicas = new ArrayList<>();
 
     @NotBlank
     @Size(max = 1000)
@@ -45,7 +49,7 @@ public class NovoProdutoDTO {
         return quantidade;
     }
 
-    public Set<NovaCaracteristicaDTO> getCaracteristicas() {
+    public List<NovaCaracteristicaDTO> getCaracteristicas() {
         return caracteristicas;
     }
 
@@ -55,6 +59,23 @@ public class NovoProdutoDTO {
 
     public Long getIdCategoria() {
         return idCategoria;
+    }
+
+    public Produto toModel(Usuario usuario, Categoria categoria) {
+        return new Produto(nome, quantidade, descricao, valor, categoria, usuario,
+                caracteristicas);
+    }
+
+    public Set<String> buscaCaracteristicasIguais() {
+        HashSet<String> nomesIguais = new HashSet<>();
+        HashSet<String> resultados = new HashSet<>();
+        for (NovaCaracteristicaDTO caracteristica : caracteristicas) {
+            String nome = caracteristica.getNome();
+            if (!nomesIguais.add(nome)) {
+                resultados.add(nome);
+            }
+        }
+        return resultados;
     }
 
 }
