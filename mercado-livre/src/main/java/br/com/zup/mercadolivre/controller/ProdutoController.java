@@ -1,10 +1,12 @@
 package br.com.zup.mercadolivre.controller;
 
+import br.com.zup.mercadolivre.component.EnviaEmail;
 import br.com.zup.mercadolivre.component.Uploader;
 import br.com.zup.mercadolivre.config.security.UsuarioLogado;
 import br.com.zup.mercadolivre.domain.*;
 import br.com.zup.mercadolivre.domain.dto.NovaImagemDTO;
 import br.com.zup.mercadolivre.domain.dto.NovaOpiniaoDTO;
+import br.com.zup.mercadolivre.domain.dto.NovaPerguntaDTO;
 import br.com.zup.mercadolivre.domain.dto.NovoProdutoDTO;
 import br.com.zup.mercadolivre.repository.*;
 import br.com.zup.mercadolivre.validator.ProibeCaracteristicaComNomeIgualValidator;
@@ -30,20 +32,26 @@ public class ProdutoController {
     private final UsuarioRepository usuarioRepository;
     private final ImagemProdutoRepository imagemProdutoRepository;
     private final OpiniaoRepository opiniaoRepository;
+    private final PerguntaRepository perguntaRepository;
     private final Uploader uploader;
+    private final EnviaEmail enviaEmail;
 
     public ProdutoController(ProdutoRepository produtoRepository,
                              CategoriaRepository categoriaRepository,
                              UsuarioRepository usuarioRepository,
                              ImagemProdutoRepository imagemProdutoRepository,
                              OpiniaoRepository opiniaoRepository,
-                             Uploader uploader) {
+                             PerguntaRepository perguntaRepository,
+                             Uploader uploader,
+                             EnviaEmail enviaEmail) {
         this.produtoRepository = produtoRepository;
         this.categoriaRepository = categoriaRepository;
         this.usuarioRepository = usuarioRepository;
         this.imagemProdutoRepository = imagemProdutoRepository;
         this.opiniaoRepository = opiniaoRepository;
+        this.perguntaRepository = perguntaRepository;
         this.uploader = uploader;
+        this.enviaEmail = enviaEmail;
     }
 
     @InitBinder(value = "novoProdutoDTO")
@@ -89,6 +97,20 @@ public class ProdutoController {
         if (produto.isPresent() && usuario.isPresent()) {
             Opiniao opiniao = new Opiniao(dto, usuario.get(), produto.get());
             opiniaoRepository.save(opiniao);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping(value = "/{id}/pergunta")
+    @Transactional
+    public ResponseEntity<?> adicionaPergunta(@PathVariable Long id, @RequestBody @Valid NovaPerguntaDTO dto, @AuthenticationPrincipal UsuarioLogado usuarioLogado) {
+        Optional<Usuario> usuario = usuarioRepository.findByLogin(usuarioLogado.getUsername());
+        Optional<Produto> produto = produtoRepository.findById(id);
+        if (produto.isPresent() && usuario.isPresent()) {
+            Pergunta pergunta = new Pergunta(dto, usuario.get(), produto.get());
+            perguntaRepository.save(pergunta);
+            enviaEmail.enviaPerguntaAoVendedor(pergunta);
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();

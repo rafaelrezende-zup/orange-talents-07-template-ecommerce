@@ -116,4 +116,12 @@ public class Produto {
     public boolean pertenceAoUsuario(Usuario possivelUsuario) {
         return this.usuario.equals(possivelUsuario);
     }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public String getNome() {
+        return nome;
+    }
 }
