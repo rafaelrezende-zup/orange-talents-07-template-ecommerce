@@ -1,16 +1,12 @@
 package br.com.zup.mercadolivre.controller;
 
 import br.com.zup.mercadolivre.component.Uploader;
-import br.com.zup.mercadolivre.component.UploaderFake;
 import br.com.zup.mercadolivre.config.security.UsuarioLogado;
-import br.com.zup.mercadolivre.domain.Categoria;
-import br.com.zup.mercadolivre.domain.Produto;
-import br.com.zup.mercadolivre.domain.Usuario;
+import br.com.zup.mercadolivre.domain.*;
 import br.com.zup.mercadolivre.domain.dto.NovaImagemDTO;
+import br.com.zup.mercadolivre.domain.dto.NovaOpiniaoDTO;
 import br.com.zup.mercadolivre.domain.dto.NovoProdutoDTO;
-import br.com.zup.mercadolivre.repository.CategoriaRepository;
-import br.com.zup.mercadolivre.repository.ProdutoRepository;
-import br.com.zup.mercadolivre.repository.UsuarioRepository;
+import br.com.zup.mercadolivre.repository.*;
 import br.com.zup.mercadolivre.validator.ProibeCaracteristicaComNomeIgualValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,18 +28,21 @@ public class ProdutoController {
     private final ProdutoRepository produtoRepository;
     private final CategoriaRepository categoriaRepository;
     private final UsuarioRepository usuarioRepository;
-    private final UploaderFake uploaderFake;
-    private Uploader uploader;
+    private final ImagemProdutoRepository imagemProdutoRepository;
+    private final OpiniaoRepository opiniaoRepository;
+    private final Uploader uploader;
 
     public ProdutoController(ProdutoRepository produtoRepository,
                              CategoriaRepository categoriaRepository,
                              UsuarioRepository usuarioRepository,
-                             UploaderFake uploaderFake,
+                             ImagemProdutoRepository imagemProdutoRepository,
+                             OpiniaoRepository opiniaoRepository,
                              Uploader uploader) {
         this.produtoRepository = produtoRepository;
         this.categoriaRepository = categoriaRepository;
         this.usuarioRepository = usuarioRepository;
-        this.uploaderFake = uploaderFake;
+        this.imagemProdutoRepository = imagemProdutoRepository;
+        this.opiniaoRepository = opiniaoRepository;
         this.uploader = uploader;
     }
 
@@ -68,16 +67,28 @@ public class ProdutoController {
     @PostMapping(value = "/{id}/imagens")
     @Transactional
     public ResponseEntity<?> adicionaImagem(@PathVariable Long id, @Valid NovaImagemDTO dto, @AuthenticationPrincipal UsuarioLogado usuarioLogado) {
-
         Optional<Usuario> usuario = usuarioRepository.findByLogin(usuarioLogado.getUsername());
         Optional<Produto> produto = produtoRepository.findById(id);
-
         if (produto.isPresent() && usuario.isPresent()) {
             if (!produto.get().pertenceAoUsuario(usuario.get())) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN);
             }
-            Set<String> links = uploaderFake.upload(dto.getImagens());
-            produto.get().associaImagens(links);
+            Set<String> links = uploader.upload(dto.getImagens());
+            Set<ImagemProduto> imagens = produto.get().associaImagens(links);
+            imagens.forEach(imagemProdutoRepository::save);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping(value = "/{id}/opiniao")
+    @Transactional
+    public ResponseEntity<?> adicionaOpiniao(@PathVariable Long id, @RequestBody @Valid NovaOpiniaoDTO dto, @AuthenticationPrincipal UsuarioLogado usuarioLogado) {
+        Optional<Usuario> usuario = usuarioRepository.findByLogin(usuarioLogado.getUsername());
+        Optional<Produto> produto = produtoRepository.findById(id);
+        if (produto.isPresent() && usuario.isPresent()) {
+            Opiniao opiniao = new Opiniao(dto, usuario.get(), produto.get());
+            opiniaoRepository.save(opiniao);
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();

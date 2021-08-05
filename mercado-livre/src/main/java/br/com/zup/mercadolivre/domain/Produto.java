@@ -50,6 +50,9 @@ public class Produto {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "produto", cascade = CascadeType.MERGE)
     private Set<ImagemProduto> imagens = new HashSet<>();
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "produto", cascade = CascadeType.MERGE)
+    private Set<Opiniao> opinioes = new HashSet<>();
+
     public Produto(@NotBlank String nome, @Positive int quantidade,
                    @NotBlank @Size(max = 1000) String descricao,
                    @NotNull @Positive BigDecimal valor,
@@ -73,6 +76,10 @@ public class Produto {
 
     @Deprecated
     public Produto() {
+    }
+
+    public void setImagens(Set<ImagemProduto> imagens) {
+        this.imagens = imagens;
     }
 
     @Override
@@ -100,11 +107,10 @@ public class Produto {
         return true;
     }
 
-    public void associaImagens(Set<String> links) {
-        Set<ImagemProduto> imagens = links.stream()
+    public Set<ImagemProduto> associaImagens(Set<String> links) {
+        return links.stream()
                 .map(i -> new ImagemProduto(this, i))
                 .collect(Collectors.toSet());
-        this.imagens.addAll(imagens);
     }
 
     public boolean pertenceAoUsuario(Usuario possivelUsuario) {
