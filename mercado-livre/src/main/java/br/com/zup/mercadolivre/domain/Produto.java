@@ -47,6 +47,9 @@ public class Produto {
     @ManyToOne
     private Usuario usuario;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "produto", cascade = CascadeType.MERGE)
+    private Set<ImagemProduto> imagens = new HashSet<>();
+
     public Produto(@NotBlank String nome, @Positive int quantidade,
                    @NotBlank @Size(max = 1000) String descricao,
                    @NotNull @Positive BigDecimal valor,
@@ -97,4 +100,14 @@ public class Produto {
         return true;
     }
 
+    public void associaImagens(Set<String> links) {
+        Set<ImagemProduto> imagens = links.stream()
+                .map(i -> new ImagemProduto(this, i))
+                .collect(Collectors.toSet());
+        this.imagens.addAll(imagens);
+    }
+
+    public boolean pertenceAoUsuario(Usuario possivelUsuario) {
+        return this.usuario.equals(possivelUsuario);
+    }
 }
