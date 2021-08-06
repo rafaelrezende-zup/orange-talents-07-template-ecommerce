@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,7 +33,7 @@ public class Produto {
     private Integer quantidade;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "produto", cascade = CascadeType.PERSIST)
-    private Set<@Valid Caracteristica> caracteristicas = new HashSet<>();
+    private final Set<@Valid Caracteristica> caracteristicas = new HashSet<>();
 
     @NotBlank
     @Size(max = 1000)
@@ -52,6 +53,9 @@ public class Produto {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "produto", cascade = CascadeType.MERGE)
     private Set<Opiniao> opinioes = new HashSet<>();
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "produto", cascade = CascadeType.MERGE)
+    private Set<Pergunta> perguntas = new HashSet<>();
 
     public Produto(@NotBlank String nome, @Positive int quantidade,
                    @NotBlank @Size(max = 1000) String descricao,
@@ -123,5 +127,45 @@ public class Produto {
 
     public String getNome() {
         return nome;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public BigDecimal getValor() {
+        return valor;
+    }
+
+    public Set<Caracteristica> getCaracteristicas() {
+        return caracteristicas;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public Set<ImagemProduto> getImagens() {
+        return imagens;
+    }
+
+    public Set<Opiniao> getOpinioes() {
+        return opinioes;
+    }
+
+    public Set<Pergunta> getPerguntas() {
+        return perguntas;
+    }
+
+    public Double calculaNotaMedia() {
+        OptionalDouble media = opinioes.stream().map(Opiniao::getNota).mapToDouble(Integer::doubleValue).average();
+        if (media.isPresent()){
+            return media.getAsDouble();
+        }
+        return 0.0;
+    }
+
+    public Long getQtdNota() {
+        return opinioes.stream().map(Opiniao::getNota).count();
     }
 }

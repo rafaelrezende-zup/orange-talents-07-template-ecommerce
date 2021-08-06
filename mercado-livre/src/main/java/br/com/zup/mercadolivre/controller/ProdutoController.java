@@ -4,10 +4,7 @@ import br.com.zup.mercadolivre.component.EnviaEmail;
 import br.com.zup.mercadolivre.component.Uploader;
 import br.com.zup.mercadolivre.config.security.UsuarioLogado;
 import br.com.zup.mercadolivre.domain.*;
-import br.com.zup.mercadolivre.domain.dto.NovaImagemDTO;
-import br.com.zup.mercadolivre.domain.dto.NovaOpiniaoDTO;
-import br.com.zup.mercadolivre.domain.dto.NovaPerguntaDTO;
-import br.com.zup.mercadolivre.domain.dto.NovoProdutoDTO;
+import br.com.zup.mercadolivre.domain.dto.*;
 import br.com.zup.mercadolivre.repository.*;
 import br.com.zup.mercadolivre.validator.ProibeCaracteristicaComNomeIgualValidator;
 import org.springframework.http.HttpStatus;
@@ -70,6 +67,15 @@ public class ProdutoController {
             return ResponseEntity.ok().build();
         }
         throw new UsernameNotFoundException("Não foi possível encontrar usuário com email: " + usuarioLogado.getUsername());
+    }
+
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<DetalheProdutoDTO> detalhe(@PathVariable Long id) {
+        Optional<Produto> produto = produtoRepository.findById(id);
+        if (produto.isPresent()) {
+            return ResponseEntity.ok(new DetalheProdutoDTO(produto.get()));
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping(value = "/{id}/imagens")

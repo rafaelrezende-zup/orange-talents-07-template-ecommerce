@@ -53,4 +53,12 @@ public class Pergunta {
     public Produto getProduto() {
         return produto;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public LocalDateTime getDataRegistro() {
+        return dataRegistro;
+    }
 }

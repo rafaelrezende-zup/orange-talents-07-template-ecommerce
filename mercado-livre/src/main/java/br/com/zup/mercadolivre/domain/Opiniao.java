@@ -48,4 +48,24 @@ public class Opiniao {
     @Deprecated
     public Opiniao() {
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Integer getNota() {
+        return nota;
+    }
+
+    public String getTitulo() {
+        return titulo;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
 }

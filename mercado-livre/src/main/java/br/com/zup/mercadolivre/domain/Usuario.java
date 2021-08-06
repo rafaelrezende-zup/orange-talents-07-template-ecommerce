@@ -48,4 +48,8 @@ public class Usuario {
     public String getSenha() {
         return senha;
     }
+
+    public LocalDateTime getDataRegistro() {
+        return dataRegistro;
+    }
 }

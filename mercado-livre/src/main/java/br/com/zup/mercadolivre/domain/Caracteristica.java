@@ -60,4 +60,16 @@ public class Caracteristica {
             return false;
         return true;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
 }
