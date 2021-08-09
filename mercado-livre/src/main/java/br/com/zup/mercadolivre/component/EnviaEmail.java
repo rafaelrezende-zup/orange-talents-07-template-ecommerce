@@ -4,12 +4,19 @@ import br.com.zup.mercadolivre.domain.Compra;
 import br.com.zup.mercadolivre.domain.Pergunta;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
 
 @Component
 @Primary
 public class EnviaEmail {
+
+    private final UriComponentsBuilder uriComponentsBuilder;
+
+    public EnviaEmail(UriComponentsBuilder uriComponentsBuilder) {
+        this.uriComponentsBuilder = uriComponentsBuilder;
+    }
 
     public void enviaPerguntaAoVendedor(Pergunta pergunta) {
         System.out.println("Olá " + pergunta.getProduto().getUsuario().getLogin() +
@@ -36,7 +43,7 @@ public class EnviaEmail {
 
     public void enviaErroPagamento(Compra compra) {
         System.out.println("Olá " + compra.getUsuario().getLogin() + ", ocorreu um erro no pagamento da compra " + compra.getId() + ", por favor tente novamente mais tarde.\n" +
-                "Link: " + compra.toString());
+                "Link: " + compra.urlDirecionamento(uriComponentsBuilder));
     }
 
 }

@@ -49,11 +49,15 @@ public class PagamentoController {
     private ResponseEntity<?> processaPagamento(Long id, GatewayPagamentoDTO dto) {
         Optional<Compra> compra = compraRepository.findById(id);
         if (compra.isPresent() && compra.get().getStatus().equals(StatusCompra.INICIADA)) {
-            compra.get().adicionaPagamento(dto);
-            pagamentoRepository.save(dto.toPagamento(compra.get()));
-            novaCompraSucesso.processa(compra.get());
-            enviaEmail.enviaConfirmacaoPagamento(compra.get());
-            return ResponseEntity.ok().build();
+            try {
+                compra.get().adicionaPagamento(dto);
+                pagamentoRepository.save(dto.toPagamento(compra.get()));
+                novaCompraSucesso.processa(compra.get());
+                enviaEmail.enviaConfirmacaoPagamento(compra.get());
+                return ResponseEntity.ok().build();
+            } catch (RuntimeException e){
+                enviaEmail.enviaErroPagamento(compra.get());
+            }
         }
         return ResponseEntity.badRequest().build();
     }

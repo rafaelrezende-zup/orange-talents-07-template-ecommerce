@@ -9,6 +9,7 @@ import br.com.zup.mercadolivre.domain.dto.NovaCompraDTO;
 import br.com.zup.mercadolivre.repository.CompraRepository;
 import br.com.zup.mercadolivre.repository.ProdutoRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +20,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 @RestController
 @RequestMapping("/compra")
@@ -38,7 +41,7 @@ public class CompraController {
 
     @PostMapping
     @Transactional
-    public String novaCompra(@RequestBody @Valid NovaCompraDTO dto, UriComponentsBuilder uriComponentsBuilder, @AuthenticationPrincipal UsuarioLogado usuarioLogado) {
+    public ResponseEntity<?> novaCompra(@RequestBody @Valid NovaCompraDTO dto, UriComponentsBuilder uriComponentsBuilder, @AuthenticationPrincipal UsuarioLogado usuarioLogado) {
         Usuario usuario = usuarioLogado.toUsuario();
         Produto produto = produtoRepository.getById(dto.getIdProduto());
         boolean abate = produto.abateEstoque(dto.getQuantidade());
@@ -46,7 +49,16 @@ public class CompraController {
             Compra compra = new Compra(dto, usuario, produto);
             compraRepository.save(compra);
             enviaEmail.informaCompraAoVendedor(compra);
-            return compra.urlDirecionamento(uriComponentsBuilder);
+            String urlRedirecionamento = compra.urlDirecionamento(uriComponentsBuilder);
+            try {
+                URI uri = new URI(urlRedirecionamento);
+                return ResponseEntity
+                        .status(HttpStatus.FOUND)
+                        .location(uri)
+                        .build();
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
         }
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Estoque insuficiente.");
     }
