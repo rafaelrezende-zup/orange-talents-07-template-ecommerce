@@ -10,7 +10,6 @@ import br.com.zup.mercadolivre.validator.ProibeCaracteristicaComNomeIgualValidat
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,7 +25,6 @@ public class ProdutoController {
 
     private final ProdutoRepository produtoRepository;
     private final CategoriaRepository categoriaRepository;
-    private final UsuarioRepository usuarioRepository;
     private final ImagemProdutoRepository imagemProdutoRepository;
     private final OpiniaoRepository opiniaoRepository;
     private final PerguntaRepository perguntaRepository;
@@ -35,7 +33,6 @@ public class ProdutoController {
 
     public ProdutoController(ProdutoRepository produtoRepository,
                              CategoriaRepository categoriaRepository,
-                             UsuarioRepository usuarioRepository,
                              ImagemProdutoRepository imagemProdutoRepository,
                              OpiniaoRepository opiniaoRepository,
                              PerguntaRepository perguntaRepository,
@@ -43,7 +40,6 @@ public class ProdutoController {
                              EnviaEmail enviaEmail) {
         this.produtoRepository = produtoRepository;
         this.categoriaRepository = categoriaRepository;
-        this.usuarioRepository = usuarioRepository;
         this.imagemProdutoRepository = imagemProdutoRepository;
         this.opiniaoRepository = opiniaoRepository;
         this.perguntaRepository = perguntaRepository;
@@ -60,31 +56,25 @@ public class ProdutoController {
     @Transactional
     public ResponseEntity<?> cria(@RequestBody @Valid NovoProdutoDTO dto, @AuthenticationPrincipal UsuarioLogado usuarioLogado) {
         Categoria categoria = categoriaRepository.getById(dto.getIdCategoria());
-        Optional<Usuario> usuario = usuarioRepository.findByLogin(usuarioLogado.getUsername());
-        if (usuario.isPresent()) {
-            Produto produto = dto.toModel(usuario.get(), categoria);
-            produtoRepository.save(produto);
-            return ResponseEntity.ok().build();
-        }
-        throw new UsernameNotFoundException("Não foi possível encontrar usuário com email: " + usuarioLogado.getUsername());
+        Usuario usuario = usuarioLogado.toUsuario();
+        Produto produto = dto.toModel(usuario, categoria);
+        produtoRepository.save(produto);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<DetalheProdutoDTO> detalhe(@PathVariable Long id) {
         Optional<Produto> produto = produtoRepository.findById(id);
-        if (produto.isPresent()) {
-            return ResponseEntity.ok(new DetalheProdutoDTO(produto.get()));
-        }
-        return ResponseEntity.notFound().build();
+        return produto.map(value -> ResponseEntity.ok(new DetalheProdutoDTO(value))).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping(value = "/{id}/imagens")
     @Transactional
     public ResponseEntity<?> adicionaImagem(@PathVariable Long id, @Valid NovaImagemDTO dto, @AuthenticationPrincipal UsuarioLogado usuarioLogado) {
-        Optional<Usuario> usuario = usuarioRepository.findByLogin(usuarioLogado.getUsername());
+        Usuario usuario = usuarioLogado.toUsuario();
         Optional<Produto> produto = produtoRepository.findById(id);
-        if (produto.isPresent() && usuario.isPresent()) {
-            if (!produto.get().pertenceAoUsuario(usuario.get())) {
+        if (produto.isPresent()) {
+            if (!produto.get().pertenceAoUsuario(usuario)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN);
             }
             Set<String> links = uploader.upload(dto.getImagens());
@@ -98,10 +88,10 @@ public class ProdutoController {
     @PostMapping(value = "/{id}/opiniao")
     @Transactional
     public ResponseEntity<?> adicionaOpiniao(@PathVariable Long id, @RequestBody @Valid NovaOpiniaoDTO dto, @AuthenticationPrincipal UsuarioLogado usuarioLogado) {
-        Optional<Usuario> usuario = usuarioRepository.findByLogin(usuarioLogado.getUsername());
+        Usuario usuario = usuarioLogado.toUsuario();
         Optional<Produto> produto = produtoRepository.findById(id);
-        if (produto.isPresent() && usuario.isPresent()) {
-            Opiniao opiniao = new Opiniao(dto, usuario.get(), produto.get());
+        if (produto.isPresent()) {
+            Opiniao opiniao = new Opiniao(dto, usuario, produto.get());
             opiniaoRepository.save(opiniao);
             return ResponseEntity.ok().build();
         }
@@ -111,10 +101,10 @@ public class ProdutoController {
     @PostMapping(value = "/{id}/pergunta")
     @Transactional
     public ResponseEntity<?> adicionaPergunta(@PathVariable Long id, @RequestBody @Valid NovaPerguntaDTO dto, @AuthenticationPrincipal UsuarioLogado usuarioLogado) {
-        Optional<Usuario> usuario = usuarioRepository.findByLogin(usuarioLogado.getUsername());
+        Usuario usuario = usuarioLogado.toUsuario();
         Optional<Produto> produto = produtoRepository.findById(id);
-        if (produto.isPresent() && usuario.isPresent()) {
-            Pergunta pergunta = new Pergunta(dto, usuario.get(), produto.get());
+        if (produto.isPresent()) {
+            Pergunta pergunta = new Pergunta(dto, usuario, produto.get());
             perguntaRepository.save(pergunta);
             enviaEmail.enviaPerguntaAoVendedor(pergunta);
             return ResponseEntity.ok().build();

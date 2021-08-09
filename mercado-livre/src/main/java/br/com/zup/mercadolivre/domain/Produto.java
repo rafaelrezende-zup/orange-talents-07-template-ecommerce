@@ -29,7 +29,7 @@ public class Produto {
     private BigDecimal valor;
 
     @NotNull
-    @Positive
+    @Min(0)
     private Integer quantidade;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "produto", cascade = CascadeType.PERSIST)
@@ -167,5 +167,13 @@ public class Produto {
 
     public Long getQtdNota() {
         return opinioes.stream().map(Opiniao::getNota).count();
+    }
+
+    public boolean abateEstoque(Integer quantidade) {
+        if (quantidade <= this.quantidade) {
+            this.quantidade -= quantidade;
+            return true;
+        }
+        return false;
     }
 }
