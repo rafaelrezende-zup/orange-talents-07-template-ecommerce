@@ -30,4 +30,13 @@ public class EnviaEmail {
                 " \n Parabéns pela venda!");
     }
 
+    public void enviaConfirmacaoPagamento(Compra compra) {
+        System.out.println("Olá " + compra.getUsuario().getLogin() + ", foi confirmado o seu pagamento da compra " + compra.getId() + "! Parabéns pela compra!");
+    }
+
+    public void enviaErroPagamento(Compra compra) {
+        System.out.println("Olá " + compra.getUsuario().getLogin() + ", ocorreu um erro no pagamento da compra " + compra.getId() + ", por favor tente novamente mais tarde.\n" +
+                "Link: " + compra.toString());
+    }
+
 }
